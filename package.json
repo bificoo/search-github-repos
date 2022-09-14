@@ -20,7 +20,14 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "eslint": "eslint 'src/**/*.{js,ts,tsx}'",
+    "prepare": "husky install",
     "eject": "react-scripts eject"
+  },
+  "lint-staged": {
+    "src/**/*.{js,ts,tsx}": [
+      "eslint --fix"
+    ]
   },
   "eslintConfig": {
     "extends": [
@@ -39,5 +46,19 @@
       "last 1 firefox version",
       "last 1 safari version"
     ]
+  },
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^5.37.0",
+    "@typescript-eslint/parser": "^5.37.0",
+    "eslint": "8.22.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-jest": "^27.0.4",
+    "eslint-plugin-prettier": "^4.2.1",
+    "eslint-plugin-react": "^7.31.8",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "husky": "^8.0.1",
+    "jest": "^27.5.1",
+    "lint-staged": "^13.0.3",
+    "sass": "^1.54.9"
   }
 }
