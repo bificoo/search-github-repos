@@ -1,12 +1,11 @@
 import React from "react"
+import RepoList from "pages/RepoList"
 import styled from "./App.module.scss"
 
 function App() {
   return (
     <div className={styled.wrapper}>
-      <header className="App-header">
-        <h1>Title</h1>
-      </header>
+      <RepoList />
     </div>
   )
 }

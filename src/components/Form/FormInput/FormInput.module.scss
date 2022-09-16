@@ -1,0 +1,89 @@
+.wrapper {
+  -webkit-box-align: center;
+  align-items: center;
+  background-color: #fafbfc;
+  border-color: #dfe1e6;
+  color: #45536c;
+  cursor: text;
+  border-radius: 3px;
+  border-width: 1px;
+  border-style: solid;
+  box-sizing: border-box;
+  display: flex;
+  flex: 1 1 100%;
+  font-size: 14px;
+  -webkit-box-pack: justify;
+  justify-content: space-between;
+  max-width: 100%;
+  width: 100%;
+  overflow: hidden;
+  transition: background-color 0.2s ease-in-out 0s, border-color 0.2s ease-in-out 0s;
+  overflow-wrap: break-word;
+  vertical-align: top;
+  pointer-events: auto;
+
+  &:not(.disabled) {
+    &:hover {
+      background-color: #ebecf0;
+    }
+    &:focus-within {
+      background-color: #fff;
+      border-color: var(--primary-color);
+    }
+    &.invalid {
+      border: 1px solid #DE350B;
+    }
+  }
+
+  &.disabled {
+    background: #091e420a;
+    border-color: #091e420a;
+    cursor: not-allowed;
+    text-decoration: none;
+    color: #a5adba;
+    user-select: none;
+  }
+
+  &.plaintext {
+    background-color: transparent;
+    border-color: transparent;
+    pointer-events: none;
+  }
+
+  input.control {
+    padding: 0 8px;
+    height: 30px;
+    background: #0000;
+    border: 0;
+    box-sizing: border-box;
+    color: currentColor;
+    cursor: inherit;
+    font-size: 14px;
+    min-width: 0px;
+    outline: none;
+    width: 100%;
+    line-height: 1.42857;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;;
+
+    &::placeholder,
+    &::-webkit-input-placeholder {
+      color: #8B919C;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;;
+    }
+
+    &:-webkit-autofill,
+    &:-webkit-autofill:hover,
+    &:-webkit-autofill:focus,
+    &:-webkit-autofill:active {
+      box-shadow: 0 0 0 50px #ffffff inset;
+    }
+
+    &:-webkit-autofill::first-line {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Oxygen, Ubuntu, "Fira Sans", "Droid Sans", "Helvetica Neue", "Microsoft JhengHei", "Microsoft YaHei", sans-serif;;
+      font-size: 14px;
+      font-weight: normal;
+      line-height: 1;
+      color: currentColor;
+    }
+  }
+}
