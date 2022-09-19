@@ -1,5 +1,7 @@
-import React, { useCallback, useState, useRef, useEffect } from "react"
+import React, { useCallback, useState, useRef, useEffect, useMemo } from "react"
 import Form from "components/Form"
+import VirtualScroller from "components/VirtualScroller"
+import InfiniteScroller from "components/InfiniteScroller"
 import { Endpoints } from "@octokit/types"
 import Repository from "pages/RepositoryList/Repository"
 import useThrottle from "hooks/useThrottle"
@@ -35,14 +37,27 @@ const RepositoryList = () => {
     }
   }, [])
 
-  const handleVisible = (id: number) => {
-    if (id !== lastRepositoryIdRef.current) return
+  // const handleVisible = (id: number) => {
+  //   if (id !== lastRepositoryIdRef.current) return
+  //   fetch(pageRef.current + 1)
+  // }
+
+  const handleLastInView = () => {
+    console.info("last")
     fetch(pageRef.current + 1)
   }
 
   const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setValue(event.target.value)
   }
+
+  const repositoriesDom = useMemo(() => {
+    return repositories.map(repository => (
+      <VirtualScroller key={repository.id} height={135} name={repository.name}>
+        <Repository data={repository} />
+      </VirtualScroller>
+    ))
+  }, [repositories])
 
   useEffect(() => {
     searchValueRef.current = throttledValue
@@ -59,9 +74,7 @@ const RepositoryList = () => {
           <Form.Input style={{ width: "100%" }} onChange={handleChange} />
         </div>
         <div>
-          {repositories.map(repository => (
-            <Repository key={repository.id} data={repository} onVisible={handleVisible} />
-          ))}
+          <InfiniteScroller domList={repositoriesDom} onLastInView={handleLastInView} />
         </div>
         {throttledValue === "" && (
           <div className={styled["not-enter"]}>Please enter your search text above.</div>

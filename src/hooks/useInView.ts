@@ -1,38 +1,38 @@
 import { useState, useRef, useEffect } from "react"
 
-type useElementOnScreenProps = {
-  root?: HTMLDivElement | null
+type useInViewProps<T extends HTMLElement> = {
+  root?: T | null
   rootMargin?: string
   threshold?: number
 }
 
-const useElementOnScreen = <T extends HTMLElement>({
+const useInView = <T extends HTMLElement>({
   root = null,
   rootMargin = "0px",
   threshold = 1.0,
-}: useElementOnScreenProps) => {
-  const node = useRef<null | T>(null)
+}: useInViewProps<T>) => {
+  const ref = useRef<T>(null)
   const options = useRef({ root, rootMargin, threshold })
-  const [entry, setEntry] = useState<IntersectionObserverEntry>()
+  const [inView, setInView] = useState<boolean>()
 
   const observer = useRef<IntersectionObserver | null>(null)
   useEffect(() => {
-    if (node.current) {
+    if (ref.current) {
       observer.current = new IntersectionObserver(([entry]) => {
-        setEntry(entry)
+        setInView(entry?.isIntersecting)
       }, options.current)
-      observer.current?.observe(node.current)
+      observer.current?.observe(ref.current)
     }
     return () => {
-      if (node.current) {
-        observer.current?.unobserve(node.current)
+      if (ref.current) {
+        observer.current?.unobserve(ref.current)
       } else {
         observer.current?.disconnect()
       }
     }
   }, [])
 
-  return { node, entry }
+  return { ref, inView }
 }
 
-export default useElementOnScreen
+export default useInView

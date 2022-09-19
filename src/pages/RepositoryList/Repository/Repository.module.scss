@@ -1,6 +1,7 @@
 .wrapper {
   display: block;
   width: 100%;
+  height: 115px;
   box-sizing: border-box;
   background: #fafbfc;
   border-radius: 4px;
@@ -29,6 +30,9 @@
 
   .description {
     margin-bottom: 8px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .footer {

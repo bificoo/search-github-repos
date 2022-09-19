@@ -1,8 +1,7 @@
 import { day } from "utils"
 import React, { useEffect } from "react"
 import { searchRepository } from "pages/RepositoryList"
-import useElementOnScreen from "hooks/useElementOnScreen"
-import usePrevious from "hooks/usePrevious"
+import useInView from "hooks/useInView"
 import styled from "./Repository.module.scss"
 
 type RepositoryProps = {
@@ -11,18 +10,14 @@ type RepositoryProps = {
 }
 
 const Repository = ({ data, ...props }: RepositoryProps) => {
-  const { node, entry } = useElementOnScreen<HTMLAnchorElement>({ threshold: 0.25 })
+  const { ref, inView } = useInView<HTMLAnchorElement>({ threshold: 0.25 })
 
-  const prevIsVisible = usePrevious(entry?.isIntersecting)
   useEffect(() => {
-    if (prevIsVisible === entry?.isIntersecting) return
-    if (entry?.isIntersecting) {
-      props.onVisible && props.onVisible(data.id)
-    }
-  }, [entry?.isIntersecting, props.onVisible, data.id])
+    inView && props.onVisible && props.onVisible(data.id)
+  }, [inView, props.onVisible, data.id])
 
   return (
-    <a ref={node} href={data.html_url} title={data.full_name} className={styled.wrapper}>
+    <a ref={ref} href={data.html_url} title={data.full_name} className={styled.wrapper}>
       <div>
         <div className={styled.title}>{data.full_name}</div>
         <div className={styled.description}>{data.description}</div>
