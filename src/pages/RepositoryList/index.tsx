@@ -1,27 +1,32 @@
-import React, { useCallback, useEffect, useState, useRef } from "react"
+import React, { useCallback, useState, useRef, useEffect } from "react"
 import Form from "components/Form"
 import { Endpoints } from "@octokit/types"
 import Repository from "pages/RepositoryList/Repository"
-import styled from "./RepositoryList.module.scss"
+import useThrottle from "hooks/useThrottle"
 import { fetchRepositories } from "./utils"
+import styled from "./RepositoryList.module.scss"
 
 export type searchRepositoriesReposResponse = Endpoints["GET /search/repositories"]["response"]
 export type searchRepository = Common.ArrayElement<searchRepositoriesReposResponse["data"]["items"]>
 
 const RepositoryList = () => {
+  const [value, setValue] = useState<string>("")
   const [repositories, setRepositories] = useState<searchRepository[]>([])
-  const response = useRef<searchRepositoriesReposResponse | null>(null)
-  const lastRepositoryId = useRef<number | null>(null)
-  const searchText = useRef<string>("peggy")
-  const page = useRef<number>(1)
+  const responseRef = useRef<searchRepositoriesReposResponse | null>(null)
+  const lastRepositoryIdRef = useRef<number | null>(null)
+  const searchValueRef = useRef<string>(value)
+  const pageRef = useRef<number>(1)
+  const throttledValue = useThrottle<string>(value)
 
   const fetch = useCallback(async (page = 1) => {
-    const fetchRepositoriesResponse = await fetchRepositories(searchText.current, page)
+    if (!searchValueRef.current) return
+    const fetchRepositoriesResponse = await fetchRepositories(searchValueRef.current, page)
     if (fetchRepositoriesResponse.data.items.length > 0) {
-      console.info("fetchRepositoriesResponse.data.items", fetchRepositoriesResponse.data.items)
-      response.current = fetchRepositoriesResponse
-      lastRepositoryId.current =
-        response.current.data.items[response.current.data.items.length - 1].id
+      console.info("fetch:", searchValueRef.current, page, fetchRepositoriesResponse.data.items)
+      pageRef.current = page
+      responseRef.current = fetchRepositoriesResponse
+      lastRepositoryIdRef.current =
+        responseRef.current.data.items[responseRef.current.data.items.length - 1].id
       if (page === 1) {
         setRepositories(fetchRepositoriesResponse.data.items)
       } else {
@@ -31,21 +36,18 @@ const RepositoryList = () => {
   }, [])
 
   const handleVisible = (id: number) => {
-    if (id !== lastRepositoryId.current) return
-    page.current = page.current + 1
-    fetch(page.current)
+    if (id !== lastRepositoryIdRef.current) return
+    fetch(pageRef.current + 1)
   }
 
-  // Initialize first page
-  useEffect(() => {
-    fetch(1)
-  }, [fetch])
+  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    setValue(event.target.value)
+  }
 
-  // Change input value
   useEffect(() => {
-    // console.info("input value change")
-    // fetch(1)
-  }, [])
+    searchValueRef.current = throttledValue
+    fetch(1)
+  }, [throttledValue])
 
   return (
     <div className={styled.wrapper}>
@@ -54,13 +56,19 @@ const RepositoryList = () => {
       </header>
       <section className={styled.inner}>
         <div className={styled.filter}>
-          <Form.Input style={{ width: "100%" }} />
+          <Form.Input style={{ width: "100%" }} onChange={handleChange} />
         </div>
         <div>
           {repositories.map(repository => (
             <Repository key={repository.id} data={repository} onVisible={handleVisible} />
           ))}
         </div>
+        {throttledValue === "" && (
+          <div className={styled["not-enter"]}>Please enter your search text above.</div>
+        )}
+        {throttledValue !== "" && repositories.length === 0 && (
+          <div className={styled["no-data"]}>No Data</div>
+        )}
       </section>
     </div>
   )

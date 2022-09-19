@@ -7,7 +7,6 @@ const octokit = new Octokit({
 })
 
 export function fetchRepositories(searchText: string, page: number) {
-  console.info(searchText, page)
   const promise = new Promise<searchRepositoriesReposResponse>((resolve, reject) => {
     if (searchText === "") reject("Search text can't empty.")
     octokit
