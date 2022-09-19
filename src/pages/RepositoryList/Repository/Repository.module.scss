@@ -1,0 +1,38 @@
+.wrapper {
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
+  background: #fafbfc;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 20px;
+  padding: 24px 20px;
+  font-size: 14px;
+  text-decoration: none;
+  color: var(--main-color);
+  border: 1px solid #dfe1e6;
+  transition: background-color .3s;
+
+  &:hover {
+    background-color: #ebecf0;
+
+    .title {
+      text-decoration: underline;
+    }
+  }
+
+  .title {
+    display: block;
+    margin-bottom: 8px;
+    color: var(--primary-color);
+  }
+
+  .description {
+    margin-bottom: 8px;
+  }
+
+  .footer {
+    font-size: 12px;
+    color: #9a8e80;
+  }
+}

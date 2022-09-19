@@ -193,6 +193,10 @@ declare global {
     type WithStyle = { style?: React.CSSProperties }
     type Component = WithChildren & WithClassName & WithStyle
   }
+
+  declare namespace Common {
+    type ArrayElement<ArrayType extends readonly unknown[]> = ArrayType[number]
+  }
 }
 
 export default global
