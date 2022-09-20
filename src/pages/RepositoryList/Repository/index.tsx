@@ -9,20 +9,14 @@ type RepositoryProps = {
   onVisible?: (id: number) => void
 }
 
-const Repository = ({ data, ...props }: RepositoryProps) => {
-  const { ref, inView } = useInView<HTMLAnchorElement>({ threshold: 0.25 })
-
-  useEffect(() => {
-    inView && props.onVisible && props.onVisible(data.id)
-  }, [inView, props.onVisible, data.id])
-
+const Repository = (props: RepositoryProps) => {
   return (
-    <a ref={ref} href={data.html_url} title={data.full_name} className={styled.wrapper}>
+    <a href={props.data.html_url} title={props.data.full_name} className={styled.wrapper}>
       <div>
-        <div className={styled.title}>{data.full_name}</div>
-        <div className={styled.description}>{data.description}</div>
+        <div className={styled.title}>{props.data.full_name}</div>
+        <div className={styled.description}>{props.data.description}</div>
         <div className={styled.footer}>
-          {data.language}・{day(data.pushed_at).fromNow()}
+          {props.data.language}・{day(props.data.pushed_at).fromNow()}
         </div>
       </div>
     </a>

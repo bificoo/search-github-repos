@@ -5,6 +5,7 @@ type InfiniteScrollerProps<T> = {
   domList: T[]
   onLastInView: () => void
 }
+
 const InfiniteScroller = <T extends React.ReactNode>(props: InfiniteScrollerProps<T>) => {
   const { ref, inView } = useInView<HTMLDivElement>({})
 
