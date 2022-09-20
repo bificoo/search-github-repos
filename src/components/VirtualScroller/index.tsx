@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useRef, useState } from "react"
 import { getInitialSetting } from "components/VirtualScroller/utils"
 import styled from "./VirtualScroller.module.scss"
+import usePrevious from "hooks/usePrevious"
 
 export type Settings = {
   minIndex: number
@@ -42,6 +43,7 @@ const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
       tolerance: 2,
     }),
   )
+  const scrollTopRef = useRef(0)
 
   const getData = useCallback(
     (offset: number, limit: number) => {
@@ -60,6 +62,7 @@ const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
 
   const scroll = useCallback(
     (scrollTop: number) => {
+      scrollTopRef.current = scrollTop
       const { totalHeight, toleranceHeight, bufferedAmount, itemHeight, minIndex } =
         settingsRef.current
       const index = minIndex + Math.floor((scrollTop - toleranceHeight) / itemHeight)
@@ -69,7 +72,6 @@ const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
         totalHeight - topPaddingHeight - data.length * itemHeight,
         0,
       )
-      // console.info("scrollTop", index, bufferedAmount, topPaddingHeight, bottomPaddingHeight, data)
       settingsRef.current = {
         ...settingsRef.current,
         topPaddingHeight,
@@ -80,28 +82,39 @@ const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
     [getData],
   )
 
-  const scrollToTop = useCallback(() => {
-    if (viewportElement.current) {
-      viewportElement.current.scrollTop = settingsRef.current.initialPosition
+  const init = useRef(false)
+  useEffect(() => {
+    if (!init.current) {
+      if (viewportElement.current) {
+        viewportElement.current.scrollTop = settingsRef.current.initialPosition
+      }
+      if (!settingsRef.current.initialPosition) scroll(0)
+      init.current = true
     }
-    if (!settingsRef.current.initialPosition) scroll(0)
-  }, [scroll])
+  }, [])
 
+  const prevSettings = usePrevious({
+    maxIndex: props.data.length,
+    viewportHeight: props.viewportHeight,
+    itemHeight: props.height,
+  })
   useEffect(() => {
-    scrollToTop()
-  }, [scrollToTop])
-
-  useEffect(() => {
-    settingsRef.current = getInitialSetting({
-      minIndex: 1,
-      maxIndex: props.data.length,
-      startIndex: 1,
-      viewportHeight: props.viewportHeight,
-      itemHeight: props.height,
-      tolerance: 2,
-    })
-    scrollToTop()
-  }, [scrollToTop, props.data.length, props.viewportHeight, props.height])
+    if (
+      prevSettings?.maxIndex !== props.data.length ||
+      prevSettings.viewportHeight !== props.viewportHeight ||
+      prevSettings.itemHeight !== props.height
+    ) {
+      settingsRef.current = getInitialSetting({
+        minIndex: 1,
+        maxIndex: props.data.length,
+        startIndex: 1,
+        viewportHeight: props.viewportHeight,
+        itemHeight: props.height,
+        tolerance: 2,
+      })
+      scroll(scrollTopRef.current)
+    }
+  }, [scroll, props.data.length, props.viewportHeight, props.height])
 
   return (
     <div

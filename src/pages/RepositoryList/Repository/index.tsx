@@ -9,9 +9,12 @@ type RepositoryProps = {
   onVisible?: (id: number) => void
 }
 
-const Repository = (props: RepositoryProps) => {
+const Repository = React.forwardRef(function Repository(
+  props: RepositoryProps,
+  ref: React.Ref<HTMLAnchorElement>,
+) {
   return (
-    <a href={props.data.html_url} title={props.data.full_name} className={styled.wrapper}>
+    <a ref={ref} href={props.data.html_url} title={props.data.full_name} className={styled.wrapper}>
       <div>
         <div className={styled.title}>{props.data.full_name}</div>
         <div className={styled.description}>{props.data.description}</div>
@@ -21,6 +24,6 @@ const Repository = (props: RepositoryProps) => {
       </div>
     </a>
   )
-}
+})
 
 export default Repository

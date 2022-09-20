@@ -2,12 +2,12 @@ import React, { useCallback, useState, useRef, useEffect, useMemo } from "react"
 import Form from "components/Form"
 import AutoSizer from "components/AutoSizer"
 import VirtualScroller from "components/VirtualScroller"
-import InfiniteScroller from "components/InfiniteScroller"
 import { Endpoints } from "@octokit/types"
 import Repository from "pages/RepositoryList/Repository"
 import useThrottle from "hooks/useThrottle"
 import { fetchRepositories } from "./utils"
 import styled from "./RepositoryList.module.scss"
+import useInView from "hooks/useInView"
 
 export type searchRepositoriesReposResponse = Endpoints["GET /search/repositories"]["response"]
 export type searchRepository = Common.ArrayElement<searchRepositoriesReposResponse["data"]["items"]>
@@ -19,13 +19,14 @@ const RepositoryList = () => {
   const lastRepositoryIdRef = useRef<number | null>(null)
   const searchValueRef = useRef<string>(value)
   const pageRef = useRef<number>(1)
+
+  const { ref, inView } = useInView<HTMLAnchorElement>({})
   const throttledValue = useThrottle<string>(value)
 
   const fetch = useCallback(async (page = 1) => {
     if (!searchValueRef.current) return
     const fetchRepositoriesResponse = await fetchRepositories(searchValueRef.current, page)
     if (fetchRepositoriesResponse.data.items.length > 0) {
-      console.info("fetch:", searchValueRef.current, page, fetchRepositoriesResponse.data.items)
       pageRef.current = page
       responseRef.current = fetchRepositoriesResponse
       lastRepositoryIdRef.current =
@@ -38,24 +39,16 @@ const RepositoryList = () => {
     }
   }, [])
 
-  // const handleVisible = (id: number) => {
-  //   if (id !== lastRepositoryIdRef.current) return
-  //   fetch(pageRef.current + 1)
-  // }
-
-  // const handleLastInView = () => {
-  //   console.info("last")
-  //   fetch(pageRef.current + 1)
-  // }
-
-  const handleChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setValue(event.target.value)
-  }
-
   useEffect(() => {
     searchValueRef.current = throttledValue
     fetch(1)
-  }, [throttledValue])
+  }, [fetch, throttledValue])
+
+  useEffect(() => {
+    if (inView) {
+      fetch(pageRef.current + 1)
+    }
+  }, [fetch, inView])
 
   return (
     <div className={styled.wrapper}>
@@ -64,7 +57,7 @@ const RepositoryList = () => {
       </header>
       <section className={styled.inner}>
         <div className={styled.filter}>
-          <Form.Input style={{ width: "100%" }} onChange={handleChange} />
+          <Form.Input style={{ width: "100%" }} onChange={event => setValue(event.target.value)} />
         </div>
 
         {repositories.length > 0 && (
@@ -74,13 +67,19 @@ const RepositoryList = () => {
                 data={repositories}
                 height={115}
                 viewportHeight={height}
-                renderItem={repository => <Repository key={repository.id} data={repository} />}
+                renderItem={repository => {
+                  return (
+                    <Repository
+                      key={repository.id}
+                      data={repository}
+                      {...(repository.id === lastRepositoryIdRef.current ? { ref } : {})}
+                    />
+                  )
+                }}
               />
             )}
           </AutoSizer>
         )}
-
-        {/* <InfiniteScroller domList={repositoriesDom} onLastInView={handleLastInView} /> */}
 
         {throttledValue === "" && (
           <div className={styled["not-enter"]}>Please enter your search text above.</div>
