@@ -28,6 +28,7 @@ type VirtualScrollerProps<T> = {
   height: number
   viewportHeight: number
   renderItem: (data: T) => React.ReactNode
+  renderLoading: () => React.ReactNode
 }
 
 const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
@@ -67,7 +68,7 @@ const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
         settingsRef.current
       const index = minIndex + Math.floor((scrollTop - toleranceHeight) / itemHeight)
       const data = getData(index, bufferedAmount)
-      const topPaddingHeight = Math.max((index - minIndex) * itemHeight, 0)
+      const topPaddingHeight = Math.max(index * itemHeight, 0)
       const bottomPaddingHeight = Math.max(
         totalHeight - topPaddingHeight - data.length * itemHeight,
         0,
@@ -124,6 +125,7 @@ const VirtualScroller = <T extends object>(props: VirtualScrollerProps<T>) => {
       style={{ height: settingsRef.current.viewportHeight }}>
       <div style={{ height: settingsRef.current.topPaddingHeight }} />
       {data.map(props.renderItem)}
+      {props.renderLoading()}
       <div style={{ height: settingsRef.current.bottomPaddingHeight }} />
     </div>
   )

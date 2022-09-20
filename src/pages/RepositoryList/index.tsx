@@ -15,8 +15,9 @@ export type searchRepository = Common.ArrayElement<searchRepositoriesReposRespon
 const RepositoryList = () => {
   const [value, setValue] = useState<string>("")
   const [repositories, setRepositories] = useState<searchRepository[]>([])
+  const [loading, setLoading] = useState(false)
   const responseRef = useRef<searchRepositoriesReposResponse | null>(null)
-  const lastRepositoryIdRef = useRef<number | null>(null)
+  const lastRepositoryIdRef = useRef<string | null>(null)
   const searchValueRef = useRef<string>(value)
   const pageRef = useRef<number>(1)
 
@@ -25,18 +26,21 @@ const RepositoryList = () => {
 
   const fetch = useCallback(async (page = 1) => {
     if (!searchValueRef.current) return
+    setLoading(true)
+    page === 1 && setRepositories([])
     const fetchRepositoriesResponse = await fetchRepositories(searchValueRef.current, page)
     if (fetchRepositoriesResponse.data.items.length > 0) {
       pageRef.current = page
       responseRef.current = fetchRepositoriesResponse
       lastRepositoryIdRef.current =
-        responseRef.current.data.items[responseRef.current.data.items.length - 1].id
+        responseRef.current.data.items[responseRef.current.data.items.length - 1].node_id
       if (page === 1) {
         setRepositories(fetchRepositoriesResponse.data.items)
       } else {
         setRepositories(prev => [...prev, ...fetchRepositoriesResponse.data.items])
       }
     }
+    setLoading(false)
   }, [])
 
   useEffect(() => {
@@ -57,35 +61,32 @@ const RepositoryList = () => {
       </header>
       <section className={styled.inner}>
         <div className={styled.filter}>
-          <Form.Input style={{ width: "100%" }} onChange={event => setValue(event.target.value)} />
+          <Form.Input
+            autoFocus
+            style={{ width: "100%" }}
+            placeholder="Please enter your search text."
+            onChange={event => setValue(event.target.value)}
+          />
         </div>
 
-        {repositories.length > 0 && (
+        {throttledValue !== "" && (
           <AutoSizer>
             {({ height }) => (
               <VirtualScroller
                 data={repositories}
                 height={115}
                 viewportHeight={height}
-                renderItem={repository => {
-                  return (
-                    <Repository
-                      key={repository.id}
-                      data={repository}
-                      {...(repository.id === lastRepositoryIdRef.current ? { ref } : {})}
-                    />
-                  )
-                }}
+                renderItem={repository => (
+                  <Repository
+                    key={repository.node_id}
+                    data={repository}
+                    {...(repository.node_id === lastRepositoryIdRef.current ? { ref } : {})}
+                  />
+                )}
+                renderLoading={() => loading && <div className={styled.loading}>Loading</div>}
               />
             )}
           </AutoSizer>
-        )}
-
-        {throttledValue === "" && (
-          <div className={styled["not-enter"]}>Please enter your search text above.</div>
-        )}
-        {throttledValue !== "" && repositories.length === 0 && (
-          <div className={styled["no-data"]}>No Data</div>
         )}
       </section>
     </div>

@@ -1,7 +1,6 @@
 import { day } from "utils"
-import React, { useEffect } from "react"
+import React from "react"
 import { searchRepository } from "pages/RepositoryList"
-import useInView from "hooks/useInView"
 import styled from "./Repository.module.scss"
 
 type RepositoryProps = {
@@ -19,7 +18,9 @@ const Repository = React.forwardRef(function Repository(
         <div className={styled.title}>{props.data.full_name}</div>
         <div className={styled.description}>{props.data.description}</div>
         <div className={styled.footer}>
-          {props.data.language}・{day(props.data.pushed_at).fromNow()}
+          {props.data.language}
+          {props.data.language && "・"}
+          {day(props.data.pushed_at).fromNow()}
         </div>
       </div>
     </a>
