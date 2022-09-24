@@ -3,7 +3,6 @@ import Form from "components/Form"
 import AutoSizer from "components/AutoSizer"
 import VirtualScroller from "components/VirtualScroller"
 import Repository from "pages/RepositoryList/Repository"
-import useThrottle from "hooks/useThrottle"
 import styled from "./RepositoryList.module.scss"
 import useInView from "hooks/useInView"
 import useOctokitApi from "hooks/useOctokitApi"
@@ -73,10 +72,6 @@ const RepositoryList = () => {
       }
     }
   }, [repositoriesResponse])
-
-  useEffect(() => {
-    console.info("repositories", repositories)
-  }, [repositories])
 
   return (
     <div className={styled.wrapper}>
