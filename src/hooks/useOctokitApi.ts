@@ -1,13 +1,13 @@
 import { useCallback, useState } from "react"
 import { RequestParameters } from "@octokit/types"
 import { Octokit } from "@octokit/rest"
-import { throttle } from "utils"
+import { debounce } from "utils"
 import Modal from "components/Modal"
 
 type OctokitApiProps = {
   url: string
   options?: {
-    throttle?: number
+    debounce?: number
   }
 }
 
@@ -33,7 +33,7 @@ export default function useOctokitApi<T>(props: OctokitApiProps): OctokitApiResp
     params: null,
   })
 
-  const throttleExecute = throttle<RequestParameters>(params => {
+  const debounceExecute = debounce<RequestParameters>(params => {
     setState(() => ({ data: null, error: null, loading: true, params }))
     octokit
       .request(props.url, params)
@@ -43,21 +43,18 @@ export default function useOctokitApi<T>(props: OctokitApiProps): OctokitApiResp
         }
       })
       .catch(error => {
-        if (error?.response?.data?.message) {
-          Modal.alert({
-            title: "Warning",
-            content: error.response.data.message,
-            confirmText: "OK",
-          })
-        }
-        throw error
+        Modal.alert({
+          title: "Warning",
+          content: error?.response?.data?.message || "Please try again later",
+          confirmText: "OK",
+        })
       })
       .finally(() => {
         setState(prev => ({ ...prev, loading: false }))
       })
-  }, props.options?.throttle ?? 3000)
+  }, props.options?.debounce)
 
-  const execute = useCallback(throttleExecute, [props.url])
+  const execute = useCallback(debounceExecute, [props.url])
 
   return [state, execute]
 }

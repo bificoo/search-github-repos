@@ -5,10 +5,11 @@ export const getInitialSetting = ({
   startIndex,
   viewportHeight,
   itemHeight,
+  loadingHeight,
   tolerance,
 }: Settings): CompoundSettings => {
   const amount = Math.floor(viewportHeight / itemHeight)
-  const totalHeight = (maxIndex - minIndex + 1) * itemHeight
+  const totalHeight = (maxIndex - minIndex + 1) * itemHeight + loadingHeight
   const toleranceHeight = tolerance * itemHeight
   const bufferHeight = viewportHeight + 2 * toleranceHeight
   const bufferedAmount = amount + 2 * tolerance
@@ -22,6 +23,7 @@ export const getInitialSetting = ({
     startIndex,
     viewportHeight,
     itemHeight,
+    loadingHeight,
     amount,
     tolerance,
     totalHeight,

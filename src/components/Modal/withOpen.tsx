@@ -1,5 +1,5 @@
 import React from "react"
-import ReactDOM from "react-dom"
+import { createRoot, Root } from "react-dom/client"
 import { ModalProps } from "./Modal"
 import ModalHeader from "./ModalHeader"
 import ModalTitle from "./ModalTitle"
@@ -46,20 +46,21 @@ export type ModalConfig = {
   onClose?: () => void
 } & ModalProps
 
-export const getPopupRoot = () => {
-  let popupRoot = document.getElementById("popup-root")
-  if (!popupRoot) {
-    popupRoot = document.createElement("div")
-    popupRoot.setAttribute("id", "popup-root")
-    document.body.appendChild(popupRoot)
-  }
-  return popupRoot
+const POPUP_ROOT = "popup-root"
+type ContainerType = (Element | DocumentFragment) & {
+  [POPUP_ROOT]?: Root
+}
+
+function _render(node: React.ReactElement, container: ContainerType) {
+  const root = container[POPUP_ROOT] || createRoot(container)
+  root.render(node)
+  container[POPUP_ROOT] = root
 }
 
 export function open(Modal: React.FC<ModalProps>, config: ModalConfig) {
-  const modalRoot = getPopupRoot()
-  const modalDiv = document.createElement("div")
-  modalRoot.appendChild(modalDiv)
+  const container: ContainerType = Object.assign(document.createDocumentFragment(), {
+    [POPUP_ROOT]: undefined,
+  })
 
   function bindClose(config: ModalConfig) {
     const { onClose, onConfirm, onCancel, ...theOtherConfig } = config
@@ -81,7 +82,7 @@ export function open(Modal: React.FC<ModalProps>, config: ModalConfig) {
 
   function render(_config: ModalConfig) {
     const config = bindClose(_config)
-    ReactDOM.render(
+    _render(
       <Modal
         open={config.open}
         lockScroll={config.lockScroll}
@@ -113,7 +114,7 @@ export function open(Modal: React.FC<ModalProps>, config: ModalConfig) {
           </Button>
         </ModalFooter>
       </Modal>,
-      modalDiv,
+      container,
     )
   }
 
@@ -138,7 +139,6 @@ export function open(Modal: React.FC<ModalProps>, config: ModalConfig) {
   })
 
   return {
-    destroy: close,
     update,
   }
 }

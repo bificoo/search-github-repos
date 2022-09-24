@@ -29,7 +29,7 @@ const RepositoryList = () => {
   const [repositoriesResponse, fetchRepositories] = useOctokitApi<searchRepositoriesData>({
     url: "GET /search/repositories",
     options: {
-      throttle: 1000,
+      debounce: 300,
     },
   })
 
@@ -61,6 +61,7 @@ const RepositoryList = () => {
 
   // update ui view
   useEffect(() => {
+    if (repositoriesResponse.loading) return
     if (repositoriesResponse.data?.items.length) {
       pageRef.current = (repositoriesResponse.params as Params).page
       lastRepositoryIdRef.current =
@@ -70,6 +71,8 @@ const RepositoryList = () => {
       } else {
         setRepositories(prev => [...prev, ...(repositoriesResponse.data?.items || [])])
       }
+    } else {
+      setRepositories([])
     }
   }, [repositoriesResponse])
 
@@ -87,12 +90,12 @@ const RepositoryList = () => {
             onChange={event => setQuery(event.target.value)}
           />
         </div>
-
         {query !== "" && (
           <AutoSizer>
             {({ height }) => (
               <VirtualScroller
                 data={repositories}
+                loading={repositoriesResponse.loading}
                 height={115}
                 viewportHeight={height}
                 renderItem={repository => (
@@ -102,9 +105,14 @@ const RepositoryList = () => {
                     {...(repository.node_id === lastRepositoryIdRef.current ? { ref } : {})}
                   />
                 )}
-                renderLoading={() =>
-                  repositoriesResponse.loading && <div className={styled.loading}>Loading</div>
-                }
+                renderLoading={(ref: React.RefCallback<HTMLDivElement>, { visible }) => (
+                  <div
+                    ref={ref}
+                    className={styled.message}
+                    style={{ visibility: visible ? "visible" : "hidden" }}>
+                    Loading
+                  </div>
+                )}
               />
             )}
           </AutoSizer>
