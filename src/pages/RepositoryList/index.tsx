@@ -41,7 +41,7 @@ const RepositoryList = () => {
         q: query,
         sort: "stars",
         order: "desc",
-        per_page: 10,
+        per_page: 50,
         page: pageRef.current,
       })
     },
