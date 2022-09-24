@@ -1,58 +1,82 @@
-import React, { useCallback, useState, useRef, useEffect, useMemo } from "react"
+import React, { useCallback, useState, useRef, useEffect } from "react"
 import Form from "components/Form"
 import AutoSizer from "components/AutoSizer"
 import VirtualScroller from "components/VirtualScroller"
-import { Endpoints } from "@octokit/types"
 import Repository from "pages/RepositoryList/Repository"
 import useThrottle from "hooks/useThrottle"
-import { fetchRepositories } from "./utils"
 import styled from "./RepositoryList.module.scss"
 import useInView from "hooks/useInView"
+import useOctokitApi from "hooks/useOctokitApi"
+import { Endpoints } from "@octokit/types"
 
-export type searchRepositoriesReposResponse = Endpoints["GET /search/repositories"]["response"]
-export type searchRepository = Common.ArrayElement<searchRepositoriesReposResponse["data"]["items"]>
+export type searchRepositoriesResponse = Endpoints["GET /search/repositories"]["response"]
+export type searchRepositoriesData = Endpoints["GET /search/repositories"]["response"]["data"]
 
+export type searchRepository = Common.ArrayElement<searchRepositoriesResponse["data"]["items"]>
+type Params = {
+  q: string
+  sort: "stars"
+  order: "desc"
+  per_page: number
+  page: number
+}
 const RepositoryList = () => {
-  const [value, setValue] = useState<string>("")
+  const [query, setQuery] = useState<string>("")
   const [repositories, setRepositories] = useState<searchRepository[]>([])
-  const [loading, setLoading] = useState(false)
-  const responseRef = useRef<searchRepositoriesReposResponse | null>(null)
   const lastRepositoryIdRef = useRef<string | null>(null)
-  const searchValueRef = useRef<string>(value)
   const pageRef = useRef<number>(1)
 
   const { ref, inView } = useInView<HTMLAnchorElement>({})
-  const throttledValue = useThrottle<string>(value)
+  const [repositoriesResponse, fetchRepositories] = useOctokitApi<searchRepositoriesData>({
+    url: "GET /search/repositories",
+    options: {
+      throttle: 1000,
+    },
+  })
 
-  const fetch = useCallback(async (page = 1) => {
-    if (!searchValueRef.current) return
-    setLoading(true)
-    page === 1 && setRepositories([])
-    const fetchRepositoriesResponse = await fetchRepositories(searchValueRef.current, page)
-    if (fetchRepositoriesResponse.data.items.length > 0) {
+  const executeApi = useCallback(
+    (page: number) => {
+      if (page === 1 && repositories.length !== 0) setRepositories([])
       pageRef.current = page
-      responseRef.current = fetchRepositoriesResponse
+      fetchRepositories({
+        q: query,
+        sort: "stars",
+        order: "desc",
+        per_page: 10,
+        page: pageRef.current,
+      })
+    },
+    [fetchRepositories, query],
+  )
+
+  // search new word
+  useEffect(() => {
+    if (!query) return
+    executeApi(1)
+  }, [query, executeApi])
+
+  // search next page
+  useEffect(() => {
+    if (inView) executeApi(pageRef.current + 1)
+  }, [inView, executeApi])
+
+  // update ui view
+  useEffect(() => {
+    if (repositoriesResponse.data?.items.length) {
+      pageRef.current = (repositoriesResponse.params as Params).page
       lastRepositoryIdRef.current =
-        responseRef.current.data.items[responseRef.current.data.items.length - 1].node_id
-      if (page === 1) {
-        setRepositories(fetchRepositoriesResponse.data.items)
+        repositoriesResponse.data.items[repositoriesResponse.data.items.length - 1].node_id ?? null
+      if (pageRef.current === 1) {
+        setRepositories(repositoriesResponse.data.items)
       } else {
-        setRepositories(prev => [...prev, ...fetchRepositoriesResponse.data.items])
+        setRepositories(prev => [...prev, ...(repositoriesResponse.data?.items || [])])
       }
     }
-    setLoading(false)
-  }, [])
+  }, [repositoriesResponse])
 
   useEffect(() => {
-    searchValueRef.current = throttledValue
-    fetch(1)
-  }, [fetch, throttledValue])
-
-  useEffect(() => {
-    if (inView) {
-      fetch(pageRef.current + 1)
-    }
-  }, [fetch, inView])
+    console.info("repositories", repositories)
+  }, [repositories])
 
   return (
     <div className={styled.wrapper}>
@@ -65,11 +89,11 @@ const RepositoryList = () => {
             autoFocus
             style={{ width: "100%" }}
             placeholder="Please enter your search text."
-            onChange={event => setValue(event.target.value)}
+            onChange={event => setQuery(event.target.value)}
           />
         </div>
 
-        {throttledValue !== "" && (
+        {query !== "" && (
           <AutoSizer>
             {({ height }) => (
               <VirtualScroller
@@ -83,7 +107,9 @@ const RepositoryList = () => {
                     {...(repository.node_id === lastRepositoryIdRef.current ? { ref } : {})}
                   />
                 )}
-                renderLoading={() => loading && <div className={styled.loading}>Loading</div>}
+                renderLoading={() =>
+                  repositoriesResponse.loading && <div className={styled.loading}>Loading</div>
+                }
               />
             )}
           </AutoSizer>
