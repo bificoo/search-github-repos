@@ -24,6 +24,7 @@
     "start": "react-scripts start",
     "build": "react-scripts build",
     "test": "react-scripts test",
+    "deploy": "gh-pages -d build",
     "eslint": "eslint 'src/**/*.{js,ts,tsx}'",
     "prepare": "husky install",
     "eject": "react-scripts eject"
@@ -60,6 +61,7 @@
     "eslint-plugin-prettier": "^4.2.1",
     "eslint-plugin-react": "^7.31.8",
     "eslint-plugin-react-hooks": "^4.6.0",
+    "gh-pages": "^4.0.0",
     "husky": "^8.0.1",
     "jest": "^27.5.1",
     "lint-staged": "^13.0.3",
