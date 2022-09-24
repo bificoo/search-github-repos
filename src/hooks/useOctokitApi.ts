@@ -22,7 +22,7 @@ export type OctokitApiResponse<T> = [OctokitApiState<T>, (params: RequestParamet
 
 const octokit = new Octokit({
   accept: "application/vnd.github+json",
-  auth: "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",
+  auth: "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",
 })
 
 export default function useOctokitApi<T>(props: OctokitApiProps): OctokitApiResponse<T> {
