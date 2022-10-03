@@ -23,7 +23,7 @@ export type OctokitApiResponse<T> = [OctokitApiState<T>, (params: RequestParamet
 const octokit = new Octokit({
   type: "token",
   username: "bificoo",
-  token: "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",
+  token: process.env.REACT_APP_GITHUB_TOKEN,
 })
 
 export default function useOctokitApi<T>(props: OctokitApiProps): OctokitApiResponse<T> {
